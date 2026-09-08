@@ -64,7 +64,8 @@ void main(List<String> args) async {
   final source = _arg(args, 'source');
   if (source == null) {
     print(
-        'Usage: dart run tool/generate_app_assets.dart --source=<path> [--target=<app-dir>]');
+      'Usage: dart run tool/generate_app_assets.dart --source=<path> [--target=<app-dir>]',
+    );
     exit(1);
   }
 
@@ -81,18 +82,18 @@ void main(List<String> args) async {
   final srcImage = img.decodeImage(File(source).readAsBytesSync());
   if (srcImage == null) {
     print(
-        'ERROR: could not decode source image — ensure it is a valid PNG/JPEG');
+      'ERROR: could not decode source image — ensure it is a valid PNG/JPEG',
+    );
     exit(1);
   }
   print('Loaded source: ${srcImage.width}×${srcImage.height}');
 
   // ── 1. Splash screen ────────────────────────────────────────────────────
   print('\n═══ 1. Splash screen ═══');
-  final splashResult = await Process.run(
-    'dart',
-    ['run', 'dartnative_splash:setup'],
-    workingDirectory: Directory.current.path,
-  );
+  final splashResult = await Process.run('dart', [
+    'run',
+    'dartnative_splash:setup',
+  ], workingDirectory: Directory.current.path);
   print(splashResult.stdout.toString().trim());
   if (splashResult.exitCode != 0) {
     print('WARNING: dartnative_splash exit code ${splashResult.exitCode}');
@@ -178,8 +179,9 @@ Future<void> _generateIosAppIcon(img.Image src, img.ColorRgba8 bg) async {
     ],
     'info': {'author': 'xcode', 'version': 1},
   };
-  File('${dir.path}/Contents.json')
-      .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(contents));
+  File(
+    '${dir.path}/Contents.json',
+  ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(contents));
   print('  wrote Contents.json (single-size — Xcode generates the variants)');
 }
 
@@ -194,17 +196,21 @@ Future<void> _generateAndroidAppIcon(img.Image src, img.ColorRgba8 bg) async {
     final path = '${dir.path}/ic_launcher.png';
     File(path).writeAsBytesSync(img.encodePng(icon));
     print(
-        '  wrote mipmap-$density/ic_launcher.png  (${icon.width}×${icon.height})');
+      '  wrote mipmap-$density/ic_launcher.png  (${icon.width}×${icon.height})',
+    );
   }
 
   // Adaptive icon foreground (Android 8+, 108×108 dp)
   final adaptiveDir = Directory('android/app/src/main/res/mipmap-anydpi-v26');
   if (!adaptiveDir.existsSync()) adaptiveDir.createSync(recursive: true);
   final adaptive = _renderIcon(src, 108, bg);
-  File('${adaptiveDir.path}/ic_launcher_foreground.png')
-      .writeAsBytesSync(img.encodePng(adaptive));
-  print('  wrote mipmap-anydpi-v26/ic_launcher_foreground.png  '
-      '(${adaptive.width}×${adaptive.height})');
+  File(
+    '${adaptiveDir.path}/ic_launcher_foreground.png',
+  ).writeAsBytesSync(img.encodePng(adaptive));
+  print(
+    '  wrote mipmap-anydpi-v26/ic_launcher_foreground.png  '
+    '(${adaptive.width}×${adaptive.height})',
+  );
 }
 
 // ── Image resizing ────────────────────────────────────────────────────────────

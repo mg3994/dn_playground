@@ -26,6 +26,18 @@
 	<string>$(DN_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+<key>NSCameraUsageDescription</key>
+	<string>Used to show a live camera preview and take photos in the Media tab demo.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Used to record audio with video in the camera and audio demos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Used to save photos and videos captured in the camera demo to your library.</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INSendMessageIntent</string>
+	</array>
+	
+
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -45,6 +57,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UISupportedInterfaceOrientations</key>

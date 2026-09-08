@@ -1,123 +1,148 @@
-import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:async' show runZonedGuarded;
 
-import 'package:dartnative/dartnative.dart' hide App;
+import 'package:dartnative/dartnative.dart';
 import 'package:dartnative_skia/dartnative_skia.dart';
-import 'package:dartnative_keys/dartnative_keys.dart';
-import 'package:dartnative_supabase/dartnative_supabase.dart' hide AuthState;
-import 'package:device_info_kit/device_info_kit.dart';
+import 'package:dartnative_sqlite/dartnative_sqlite.dart';
+import 'package:dartnative_firebase/dartnative_firebase.dart';
+import 'package:dartnative_notifications/dartnative_notifications.dart';
 
-import 'api/auth_service.dart';
-import 'config.dart';
 import 'dartnative_plugin_registrant.dart';
-import 'navigation/app_router.dart';
-import 'repositories/app_repository.dart';
-import 'screens/create_profile_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/onboarding_screen.dart';
-import 'utils/constants.dart';
-import 'utils/shared_prefs.dart';
+import 'screens/chat_screen_demo.dart';
+import 'screens/media/chatgpt_picker_demo.dart';
+import 'screens/home/demo_ui.dart' show playgroundOverlayStyle;
+import 'screens/home/home_shell.dart';
+import 'screens/grid_demo.dart';
+import 'screens/image_demo.dart';
+import 'screens/canvas_demo.dart';
+import 'screens/text_field_demo.dart';
+import 'screens/text_rendering_demo.dart';
+import 'screens/state_menu_screen.dart';
+import 'screens/state_basics_demo.dart';
+import 'screens/state_store_demo.dart';
+import 'screens/storage_menu_screen.dart';
+import 'screens/storage_demo.dart';
+import 'screens/system_connectivity_demo.dart';
+import 'screens/social_sign_in_demo.dart';
+import 'screens/notifications_demo.dart';
+import 'screens/animated_size_demo.dart';
+import 'screens/liquid_glass/liquid_glass_menu.dart';
+import 'screens/liquid_glass/glass_merge_demo.dart';
+import 'screens/liquid_glass/morphing_buttons_demo.dart';
+import 'screens/liquid_glass/zoom_morph_demo.dart';
+import 'screens/liquid_glass/bar_actions_demo.dart';
+import 'screens/liquid_glass/large_title_demo.dart';
+import 'screens/liquid_glass/floating_tab_bar_demo.dart';
+import 'screens/liquid_glass/bar_surfaces_demo.dart';
+import 'screens/material3/material3_menu.dart';
+import 'screens/material3/m3_hide_on_scroll_demo.dart';
+import 'screens/material3/m3_badges_demo.dart';
+import 'screens/material3/m3_large_top_bar_demo.dart';
+import 'screens/material3/m3_dynamic_color_demo.dart';
+import 'screens/material3/m3_search_demo.dart';
+import 'screens/material3/m3_search_appbar_demo.dart';
+import 'screens/material3/m3_menus_demo.dart';
+import 'screens/music/music_demo.dart';
+import 'screens/color_picker_demo.dart';
+import 'screens/carousel_demo.dart';
+import 'screens/text_typewriter_demo.dart';
 
-/// Debug: when true, every launch shows the onboarding as if the app were
-/// freshly installed (the persisted session, profile and onboarding flag
-/// are cleared at boot). Handy while designing the slides. Ship it false.
-const bool kDebugAlwaysShowOnboarding = false;
-
-Future<void> main() async {
-  await DartNativeLogger.run(
-    () async {
-      // MUST be first. registerAll() registers the platform bindings and
-      // loads every plugin's FFI symbols. Missing this shows as a white
-      // screen with no error.
+void main() {
+  runZonedGuarded(() {
+    // `verbose: true` enables framework debug logs (mutations, setState,
+    // scroll events, …). Invaluable for debugging, but the logging I/O has a
+    // real performance cost — use `verbose: false, saveToFile: false` when
+    // measuring scroll performance or shipping.
+    DartNativeLogger.run(() async {
+      // Registers platform bindings (iOS/Android) AND loads FFI symbols for
+      // every dartnative_* plugin in pubspec.yaml. Single source of truth —
+      // regenerate via `dn pub get`.
       DartNativePluginRegistrant.registerAll();
       registerSkiaFactories();
-      // Registers pubspec declared fonts with the OS. No-op on Android.
-      DartNativeFontRegistrant.registerAll();
-      dnLog('main: [boot] plugins and fonts registered');
-
-      // Every pushable screen, registered by name. Two reasons:
-      // 1. Navigator.pushNamed(context, '/notes') works anywhere.
-      // 2. Hot restart replay: the native side remembers which route
-      //    names are on the stack and replays them from this map. A route
-      //    pushed WITHOUT a registered name is dropped on hot restart.
-      registerRoutes({
-        '/onboarding': (_) => const OnboardingScreen(),
-        '/create_profile': (_) => const CreateProfileScreen(),
-        '/home': (_) => const HomeScreen(),
-        // Drawer SECTIONS (Notes, Favorites, ...) are not routes: they
-        // render in place inside the home screen, and the Website item is
-        // a link, not a screen. Register pushed secondary screens here,
-        // the way StubScreen shows.
-      });
-
-      // Bundled key value config (.dnkeys in the project root). With no
-      // keys present the app still runs, in demo mode.
-      await DnKeys.load();
-      await SharedPrefs.instance.initialize();
-      // Construct the theme now, not lazily: its constructor restores the
-      // persisted choice and pins the native appearance (alerts, keyboard).
-      // Left to the first themed screen, a cold start into the onboarding
-      // showed system-appearance alerts until Home had built once.
-      AppRepository.themeState;
-      // Warm the database during the splash, without blocking boot: the
-      // first open pays for directory creation, SQLite open, migrations
-      // and the first query. Left to the first Notes visit, that cost
-      // shows as a visibly late list.
-      unawaited(AppRepository.notesState.loadIfNeeded());
-      if (kDebugAlwaysShowOnboarding) {
-        await SharedPrefs.instance.remove(kPrefOnboardingComplete);
-        await SharedPrefs.instance.remove(kPrefDemoSession);
-        await SharedPrefs.instance.remove(kPrefCachedProfile);
-      }
-      dnLog('main: [boot] keys and prefs ready');
-
-      // Auth, resolved BEFORE runApp so the first frame is already the
-      // right screen. Supabase restores its session asynchronously after
-      // initialize(), so we wait for the auth state to resolve, with a
-      // bound so a slow or offline start cannot hang the splash.
-      if (AuthService.restoreDemoSession()) {
-        dnLog('main: [boot] demo session restored');
-      } else if (AppConfig.isAuthConfigured) {
-        try {
-          await Supabase.initialize(
-            url: AppConfig.supabaseUrl,
-            anonKey: AppConfig.supabaseAnonKey,
-          );
-          AuthService.initialize();
-          await AppRepository.authState.waitUntilResolved(
-            const Duration(seconds: 3),
-          );
-          // A restored session needs the profile too; do not block the
-          // first frame on it, the state notifies when it lands.
-          if (AuthService.isAuthenticated) {
-            unawaited(AuthService.fetchProfile());
-          }
-        } catch (e) {
-          dnLog('main: auth init error: $e, continuing to runApp');
-        }
-      } else {
-        dnLog('main: [boot] no Supabase keys, demo mode only');
-      }
-
-      dnLog('main: [boot] runApp');
-      //
-      final deviceInfo = DeviceInfoPlugin();
-
-      String deviceDetails = 'Unknown device';
+      // Pre-warm SQLite FFI linkage so all panels can open databases
+      // immediately without lazy-init overhead.
+      Sqlite.ensureInitialized();
       if (Platform.isIOS) {
-        final iosInfo = await deviceInfo.iosInfo;
-        deviceDetails = '${iosInfo.name}, iOS ${iosInfo.systemVersion}';
-      } else if (Platform.isAndroid) {
-        final androidInfo = await deviceInfo.androidInfo;
-        deviceDetails =
-            '${androidInfo.model}, Android ${androidInfo.version.release}';
+        // Register pubspec-declared fonts (assets/fonts/*.ttf|.otf) with UIKit
+        // so `IconData(0xXXXX, fontFamily: 'CustomFamily')` and
+        // `TextStyle(fontFamily: 'CustomFamily')` resolve correctly.
+        DartNativeFontRegistrant.registerAll();
       }
-      //
-      runApp(
-        App(initialRoute: resolveInitialRoute(), deviceDetails: deviceDetails),
-      );
-    },
-    verbose: false,
-    saveToFile: true,
-  );
+      // Firebase loads symbols + initializes the default app from the
+      // platform config (GoogleService-Info.plist / google-services.json),
+      // then installs the FCM delegate. Done here so the token is ready
+      // before any screen opens.
+      try {
+        await Firebase.initializeApp();
+        FirebaseMessaging.setup();
+      } catch (e, st) {
+        dnLog(
+            '[main] Firebase init failed — continuing without Firebase: $e\n$st');
+      }
+      try {
+        DartNativeNotifications.setup(onTap: (payload) {
+          // TODO: route to the relevant screen based on payload.
+        });
+      } catch (e, st) {
+        dnLog('[main] Notifications init failed: $e\n$st');
+      }
+      registerRoutes({
+        '/chat': (_) => const ChatScreenDemo(),
+        '/chatgpt-picker': (_) => const ChatGptPickerDemo(),
+        '/music': (_) => const MusicDemo(),
+        '/color-picker': (_) => const ColorPickerDemo(),
+        '/carousel': (_) => const CarouselDemo(),
+        '/live-text': (_) => const TextTypewriterDemo(),
+        '/grid': (_) => const GridDemo(),
+        '/image': (_) => const ImageDemo(),
+        '/text-field': (_) => const TextFieldDemo(),
+        '/text-rendering': (_) => const TextRenderingDemo(),
+        '/canvas': (_) => const CanvasDemo(),
+        '/state': (_) => const StateMenuScreen(),
+        '/state-basics': (_) => const StateBasicsDemo(),
+        '/state-store': (_) => const StateStoreDemo(),
+        '/storage': (_) => const StorageMenuScreen(),
+        '/storage-prefs': (_) =>
+            const StorageDemo(initialTab: StorageTab.preferences),
+        '/storage-secure': (_) =>
+            const StorageDemo(initialTab: StorageTab.secureStorage),
+        '/storage-cache': (_) => const StorageDemo(initialTab: StorageTab.hive),
+        '/storage-sqlite': (_) =>
+            const StorageDemo(initialTab: StorageTab.sqlite),
+        '/system-connectivity': (_) => const SystemConnectivityDemo(),
+        '/social-sign-in': (_) => const SocialSignInDemo(),
+        '/notifications': (_) => const NotificationsDemo(),
+        '/animated-size': (_) => const AnimatedSizeDemo(),
+        '/liquid-glass': (_) => const LiquidGlassMenuScreen(),
+        '/liquid-glass-merge': (_) => const GlassMergeDemo(),
+        '/liquid-glass-zoom': (_) => const ZoomMorphDemo(),
+        '/liquid-glass-morphing-buttons': (_) => const MorphingButtonsDemo(),
+        '/liquid-glass-bar-actions': (_) => const BarActionsDemo(),
+        '/liquid-glass-large-title': (_) => const LargeTitleDemo(),
+        '/liquid-glass-tab-bar': (_) => const FloatingTabBarDemo(),
+        '/liquid-glass-surfaces': (_) => const BarSurfacesDemo(),
+        '/material3': (_) => const Material3MenuScreen(),
+        '/material3-hide-on-scroll': (_) => const M3HideOnScrollDemo(),
+        '/material3-badges': (_) => const M3BadgesDemo(),
+        '/material3-large-top-bar': (_) => const M3LargeTopBarDemo(),
+        '/material3-dynamic-color': (_) => const M3DynamicColorDemo(),
+        '/material3-search': (_) => const M3SearchDemo(),
+        '/material3-search-appbar': (_) => const M3SearchAppBarDemo(),
+        '/material3-menus': (_) => const M3MenusDemo(),
+      });
+      if (DartNativeLogger.filePath != null) {
+        dnLog('[Logger] Log file: ${DartNativeLogger.filePath}');
+      }
+      // Theme before first build — a hot restart from a PUSHED screen builds
+      // that screen's tree immediately with the global palette.
+      await restorePlaygroundTheme();
+      // App-level DEFAULT system chrome, applied by the Navigator on every
+      // push — theme-aware. Screens with a fixed look override it in their
+      // initState; the Navigator restores the previous style on pop.
+      SystemChrome.defaultStyle = playgroundOverlayStyle();
+      runApp(const PlaygroundHome());
+    }, verbose: false, saveToFile: false);
+  }, (error, stack) {
+    dnLog('[main] UNCAUGHT ERROR: $error\n$stack');
+  });
 }

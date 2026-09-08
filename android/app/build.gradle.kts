@@ -3,6 +3,10 @@ plugins {
     id("kotlin-android")
     // The DartNative Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("com.dartnative.gradle-plugin")
+    // Firebase: processes android/app/google-services.json into resources so
+    // FirebaseApp auto-initializes (messaging / crashlytics).
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -51,4 +55,6 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.core:core-ktx:1.12.0")
+    // SoLoader is needed to initialise Yoga's native library at startup.
+    implementation("com.facebook.soloader:soloader:0.10.5")
 }

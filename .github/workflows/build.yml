@@ -1,0 +1,59 @@
+name: Build DartNative app
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DART_NATIVE_LICENSE_TOKEN: ${{ secrets.DART_NATIVE_LICENSE_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK 36
+        shell: bash
+        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install DartNative CLI
+        shell: bash
+        run: |
+          curl -fsSL https://cdn.dartnative.com/install.sh | sh
+          echo "$HOME/zero/bin" >> "$GITHUB_PATH"
+
+      - name: Verify DartNative CLI
+        run: dn --version
+
+      - name: Precache DartNative SDK artifacts
+        run: dn precache --force --universal
+
+      - name: Resolve dependencies
+        run: dn pub get
+
+      - name: Build release APK
+        shell: bash
+        run: dn build apk --release --dart-define=DART_NATIVE_LICENSE_TOKEN="$DART_NATIVE_LICENSE_TOKEN"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-apk
+          path: build/app/outputs/dn-apk/*.apk
+          if-no-files-found: error
