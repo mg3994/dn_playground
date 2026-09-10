@@ -1,6 +1,7 @@
 name: bloc_signals_dn
 description: DartNative extensions and bindings for BlocSignal state management library.
 version: 0.1.0
+publish_to: none
 repository: https://github.com/Antinna/bloc_signals_dn
 issue_tracker: https://github.com/Antinna/bloc_signals_dn/issues
 environment:
@@ -9,7 +10,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  dartnative: ^1.0.0
+  dartnative:
+    path: ../../.dart_tool/dartnative_sdk/dartnative
   signals_core:
     hosted: https://pub.dev
     version: ^7.0.0
