@@ -17,7 +17,7 @@
 ///     tabs — tapping one switches the tab programmatically.
 import 'package:dartnative/dartnative.dart';
 import 'package:dartnative_shared_preferences/dartnative_shared_preferences.dart';
-import 'package:dartnative_starter/main.dart' show LoginScreen;
+import 'package:dartnative_starter/main.dart' show HomeScreen;
 
 import 'demo_ui.dart';
 import 'graphics_tab.dart';
@@ -127,7 +127,7 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
     'Graphics',
     'Media',
     'System',
-    "login",
+    "Home",
   ];
 
   static const _icons = <IconData>[
@@ -258,7 +258,7 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
       GraphicsTab(),
       MediaTab(),
       SystemTab(),
-      LoginScreen(),
+      HomeScreen(),
     ];
     return PlaygroundTheme(
       palette: t,
@@ -371,7 +371,7 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
               icon: const Icon(CupertinoIcons.cube_box),
             ),
             BottomNavigationBarItem(
-              label: 'login',
+              label: 'Home Screen',
               icon: const Icon(CupertinoIcons.arrow_up_square),
             ),
           ],
