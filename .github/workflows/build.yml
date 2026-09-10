@@ -44,6 +44,16 @@ jobs:
       - name: Precache DartNative SDK artifacts
         run: dn precache --force --universal
 
+      - name: Install Flutter Material font required by Android asset bundling
+        shell: bash
+        run: |
+          material_fonts="$HOME/zero/bin/cache/artifacts/material_fonts"
+          mkdir -p "$material_fonts"
+          curl --fail --location --retry 3 \
+            --output "$material_fonts/MaterialIcons-Regular.otf" \
+            https://raw.githubusercontent.com/google/material-design-icons/4.0.0/font/MaterialIcons-Regular.ttf
+          test -s "$material_fonts/MaterialIcons-Regular.otf"
+
       - name: Resolve dependencies
         run: dn pub get
 
