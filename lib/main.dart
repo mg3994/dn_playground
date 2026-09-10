@@ -150,7 +150,16 @@
 import 'dart:async';
 
 import 'package:bloc_signals_dn/bloc_signals_dn.dart';
-import 'package:dartnative/dartnative.dart';
+import 'package:dartnative/dartnative.dart'
+    hide
+        effect,
+        computed,
+        Computed,
+        signal,
+        Signal,
+        SignalWatch,
+        ListenableWatch,
+        Provided;
 
 // ==========================================
 // 2. BLoC State & Events
