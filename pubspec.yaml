@@ -10,9 +10,9 @@ environment:
 dependencies:
   dartnative: ^1.0.0
   # Platform bindings — iOS uses dartnative_ios, Android uses dartnative_android.
-  # dartnative_ios: ^1.0.0
-  # dartnative_android: ^1.0.0
-  # dartnative_skia: ^1.0.0
+  dartnative_ios: ^1.0.0
+  dartnative_android: ^1.0.0
+  dartnative_skia: ^1.0.0
   # # ── Storage plugins ──────────────────────────────────────────────────────
   # dartnative_sqlite: ^1.0.0
   # dartnative_shared_preferences: ^1.0.0
