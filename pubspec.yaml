@@ -38,6 +38,8 @@ dependencies:
   # Lottie via Skottie (requires the skia `full` or `lottie` variant — see above).
   dartnative_lottie: ^1.0.0
   dartnative_splash: ^1.0.0
+  bloc_signals_dn:
+    path: packages/bloc_signals_dn
 
 dev_dependencies:
   lints: ^6.0.0
