@@ -17,6 +17,7 @@
 ///     tabs — tapping one switches the tab programmatically.
 import 'package:dartnative/dartnative.dart';
 import 'package:dartnative_shared_preferences/dartnative_shared_preferences.dart';
+import 'package:dartnative_starter/main.dart' show LoginScreen;
 
 import 'demo_ui.dart';
 import 'graphics_tab.dart';
@@ -59,8 +60,9 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
   /// bar's selected-tab tint in dark theme (see the BottomNavigationBar
   /// below). Null on iOS and pre-Android-12 devices, which fall back to the
   /// framework's own default.
-  static final ColorScheme? _dynamicScheme =
-      DynamicColor.colorScheme(brightness: Brightness.dark);
+  static final ColorScheme? _dynamicScheme = DynamicColor.colorScheme(
+    brightness: Brightness.dark,
+  );
 
   // The global is already restored (main awaits restorePlaygroundTheme).
   bool _dark = playgroundPalette.brightness == Brightness.dark;
@@ -82,15 +84,20 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
     // Keep the Navigator's push-default in sync with the theme.
     SystemChrome.defaultStyle = playgroundOverlayStyle();
     final barColor = drawerOpen ? Colors.transparent : _palette.barBg;
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarBrightness: _dark ? Brightness.dark : Brightness.light,
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: _dark ? Brightness.light : Brightness.dark,
-      systemNavigationBarIconBrightness:
-          _dark ? Brightness.light : Brightness.dark,
-      systemNavigationBarColor: isIOS26 ? Colors.transparent : barColor,
-      systemNavigationBarDividerColor: isIOS26 ? Colors.transparent : barColor,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarBrightness: _dark ? Brightness.dark : Brightness.light,
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: _dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: _dark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarColor: isIOS26 ? Colors.transparent : barColor,
+        systemNavigationBarDividerColor: isIOS26
+            ? Colors.transparent
+            : barColor,
+      ),
+    );
   }
 
   void _toggleTheme() {
@@ -142,8 +149,11 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
         ),
         child: Row(
           children: [
-            Icon(_icons[i],
-                size: 20, color: selected ? kAccentBlue : t.textSecondary),
+            Icon(
+              _icons[i],
+              size: 20,
+              color: selected ? kAccentBlue : t.textSecondary,
+            ),
             const SizedBox(width: 12),
             Text(
               _titles[i],
@@ -207,8 +217,10 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
                         const SizedBox(height: 2),
                         Text(
                           '@lisataylor',
-                          style:
-                              TextStyle(color: t.textSecondary, fontSize: 13),
+                          style: TextStyle(
+                            color: t.textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -238,6 +250,7 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
       GraphicsTab(),
       MediaTab(),
       SystemTab(),
+      LoginScreen(),
     ];
     return PlaygroundTheme(
       palette: t,
@@ -281,8 +294,10 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
         appBar: AppBar(
           leading: Builder(
             builder: (ctx) => IconButton(
-              icon:
-                  Icon(CupertinoIcons.line_horizontal_3, color: t.textPrimary),
+              icon: Icon(
+                CupertinoIcons.line_horizontal_3,
+                color: t.textPrimary,
+              ),
               onPressed: () => Scaffold.of(ctx).toggleDrawer(),
             ),
           ),
@@ -346,6 +361,10 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
             BottomNavigationBarItem(
               label: 'System',
               icon: const Icon(CupertinoIcons.cube_box),
+            ),
+            BottomNavigationBarItem(
+              label: 'login',
+              icon: const Icon(CupertinoIcons.arrow_up_square),
             ),
           ],
         ),
