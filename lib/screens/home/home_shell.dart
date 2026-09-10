@@ -121,7 +121,14 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
     Scaffold.of(drawerCtx).closeDrawer();
   }
 
-  static const _titles = ['Showcase', 'Widgets', 'Graphics', 'Media', 'System'];
+  static const _titles = [
+    'Showcase',
+    'Widgets',
+    'Graphics',
+    'Media',
+    'System',
+    "login",
+  ];
 
   static const _icons = <IconData>[
     CupertinoIcons.star_fill,
@@ -129,6 +136,7 @@ class _PlaygroundHomeState extends State<PlaygroundHome> {
     CupertinoIcons.paintbrush,
     CupertinoIcons.play_rectangle,
     CupertinoIcons.cube_box,
+    CupertinoIcons.arrow_up_square,
   ];
 
   Widget _drawerItem(int i, BuildContext ctx) {
